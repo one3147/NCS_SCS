@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>친구 리스트</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F0F8FF;
+            color: #000000;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #0078D7;
+            color: #FFFFFF;
+            padding: 20px 0;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .friend-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .friend-item {
+            background-color: #FFFFFF;
+            margin: 10px;
+            padding: 20px;
+            width: calc(33.333% - 20px);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .friend-name {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .action-button {
+            background-color: #4CAF50;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .action-button:hover {
+            background-color: #45a049;
+        }
+
+        .delete-button {
+            background-color: #f44336;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .delete-button:hover {
+            background-color: #e53935;
+        }
+
+        .footer {
+            text-align: center;
+            color: #777;
+            margin-top: 20px;
+            padding: 20px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">친구 리스트</div>
+    <div class="friend-list">
+        <!-- 친구 목록 아이템 -->
+        {% for friend in friends %}
+        <div class="friend-item">
+            <div class="friend-name">{{ friend.username }}</div>
+            <button class="action-button"><a href='/chat/create'>메시지 보내기</a></button>
+            <form method="post" action="/friends/delete" style="display:inline;">
+                <input type="hidden" name="friend_id" value="{{ friend.username }}">
+                <button type="submit" class="delete-button">친구 삭제</button>
+            </form>
+        </div>
+        {% empty %}
+        <div>친구가 없습니다.</div>
+        {% endfor %}
+    </div>
+    <div class="footer">
+        © 2024 Your Name
+    </div>
+</div>
+
+</body>
+</html>

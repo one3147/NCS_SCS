@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>SCS</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F0F8FF;
+            color: #000000;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .welcome-message {
+            color: #002244;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .button {
+            background-color: #0078D7;
+            color: #FFFFFF;
+            border: none;
+            padding: 15px 30px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 18px;
+            margin: 10px 5px;
+            cursor: pointer;
+            border-radius: 25px;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.3s ease-out;
+        }
+
+        .button:hover {
+            background-color: #005A9E;
+        }
+
+        /* 추가적인 스타일링을 위한 CSS */
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .footer {
+            margin-top: 50px;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+    <h1 class="welcome-message">Security Socket Chat Service</h1>
+    <h3 class="welcome-message">welcome, {{ user }}</h3>
+    {% if is_authenticated %}
+        <button class="button" onclick="location.href='/chat/create'">채팅방 생성</button>
+        <button class="button" onclick="location.href='/chat/list'">채팅방 리스트</button>
+        <button class="button" onclick="location.href='/friends/search'">친구 추가</button>
+        <button class="button" onclick="location.href='/friends/list'">친구 리스트</button>
+        <button class="button" onclick="location.href='/logout'">로그아웃</button>
+    {% else %}
+        <button class="button" onclick="location.href='/login'">로그인</button>
+        <button class="button" onclick="location.href='/signup'">회원가입</button>
+    {% endif %}
+    
+    <div class="footer">
+        © 2024 DSM Do won june
+    </div>
+</div>
+
+</body>

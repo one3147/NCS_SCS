@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅방</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F0F8FF;
+            color: #000000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow: auto;
+            padding: 20px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #FFFFFF;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: block;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .input-container {
+            display: flex;
+            padding: 20px;
+            background-color: #EEE;
+        }
+
+        .input-message {
+            flex: 1;
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #CCC;
+            border-radius: 5px;
+        }
+
+        .send-button {
+            padding: 10px 20px;
+            background-color: #0078D7;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .send-button:hover {
+            background-color: #005A9E;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container" id="chatContainer">
+        <!-- 이전 채팅 메시지들을 동적으로 추가 -->
+        {% for log in chat_logs %}
+        <div class="message">
+            <strong>{{ log.sender_id }}</strong>: {{ log.message }} <br>
+            <small>{{ log.timestamp|date:"Y-m-d H:i:s" }}</small>
+        </div>
+        {% endfor %}
+    </div>
+
+<div class="input-container">
+    <input type="text" id="messageInput" class="input-message" placeholder="메시지 입력...">
+    <button class="send-button" onclick="sendMessage()">보내기</button>
+</div>
+
+<script>
+    const urlPath = window.location.pathname;
+    const pathSegments = urlPath.split('/');
+    const chatroomId = pathSegments[pathSegments.length - 1];
+
+    var socket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + chatroomId + '/');
+
+    async function decryptMessage(encryptedData, aesKey1, IV) {
+        const iv = new Uint8Array(IV);
+        const encrypted = new Uint8Array(atob(encryptedData).split("").map(char => char.charCodeAt(0))); // Base64 디코드된 메시지
+    
+        try {
+            const algo = { name: "AES-GCM", iv: iv };
+            const cryptoKey = await window.crypto.subtle.importKey(
+                'raw',
+                aesKey1,
+                algo,
+                false,
+                ['decrypt']
+            );
+            const decrypted = await window.crypto.subtle.decrypt(algo, cryptoKey, encrypted);
+            return new TextDecoder().decode(decrypted);
+        } catch (error) {
+            console.error("Decryption failed:", error);
+            return null;
+        }
+    }
+
+    function hexStringToByte(str) {
+        if (!str) {
+            return new Uint8Array();
+        }
+        var a = [];
+        for (var i = 0, len = str.length; i < len; i+=2) {
+            a.push(parseInt(str.substr(i, 2), 16));
+        }
+        return new Uint8Array(a);
+    }
+    
+    const aesKeyString1 = new URLSearchParams(window.location.search).get('aes_key');
+    const aesKey1 = hexStringToByte(aesKeyString1);
+    
+
+    socket.onmessage = async function(event) {
+        var data = JSON.parse(event.data);
+        var encryptedMessage = data.message;
+        IV = JSON.parse(encryptedMessage).iv;
+        console.log(IV);
+        encryptedMessage = JSON.parse(encryptedMessage);
+        encryptedMessage = encryptedMessage.message;
+        var userId = data.user_id;
+        var timestamp = data.timestamp;
+        console.log(encryptedMessage);
+        decryptMessage(encryptedMessage, aesKey1, IV).then(decryptedMessage => {
+            if (decryptedMessage) {
+                var messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.innerHTML = `<strong>${userId}</strong>: ${decryptedMessage} <br><small>${timestamp}</small>`;
+                document.getElementById('chatContainer').appendChild(messageElement);
+                document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
+            } else {
+                console.error('Failed to decrypt message');
+            }
+        }).catch(error => {
+            console.error('Error in decryption:', error);
+        });
+    };
+
+    socket.onopen = function(event) {
+        console.log('WebSocket 연결 성공');
+    };
+
+
+    // 암호화 로직
+
+    function hexStringToByte(str) {
+        if (!str) {
+            return new Uint8Array();
+        }
+    
+        var a = [];
+        for (var i = 0, len = str.length; i < len; i+=2) {
+            a.push(parseInt(String(str).substr(i, 2), 16));
+        }
+    
+        return new Uint8Array(a);
+    }
+
+    const aesKeyString = new URLSearchParams(window.location.search).get('aes_key');
+    const aesKey = hexStringToByte(aesKeyString);
+    const iv = window.crypto.getRandomValues(new Uint8Array(12)); 
+    async function encryptMessage(message, key) {
+        const algo = { name: "AES-GCM", iv: iv };
+        const cryptoKey = await window.crypto.subtle.importKey(
+            'raw',
+            key,
+            algo,
+            false,
+            ['encrypt']
+        );
+        const encoded = new TextEncoder().encode(message);
+        return window.crypto.subtle.encrypt(algo, cryptoKey, encoded);
+    }
+    function sendMessage() {
+        var messageInput = document.getElementById('messageInput');
+        var messageText = messageInput.value.trim();
+
+        if (messageText) {
+            encryptMessage(messageText, aesKey).then(encrypted => {
+                const base64Encrypted = btoa(String.fromCharCode.apply(null, new Uint8Array(encrypted)));
+                const messageToSend = JSON.stringify({ iv: Array.from(iv), message: base64Encrypted });
+                socket.send(messageToSend);
+                messageInput.value = '';
+                document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
+            }).catch(error => {
+                console.error("Encryption failed", error);
+            });
+        }
+    }
+
+    document.getElementById('messageInput').addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+</script>
+
+</body>
+</html>

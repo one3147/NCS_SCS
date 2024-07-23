@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅방 목록</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F0F8FF;
+            color: #000000;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .header-message {
+            color: #002244;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .chatroom-list {
+            margin: 20px auto;
+            max-width: 600px;
+            background-color: #FFFFFF;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .chatroom-item {
+            border-bottom: 1px solid #EEEEEE;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatroom-name {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .chatroom-button {
+            background-color: #0078D7;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.3s ease-out;
+        }
+
+        .chatroom-button:hover {
+            background-color: #005A9E;
+        }
+
+        .footer {
+            margin-top: 50px;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    
+
+    <div class="container">
+        <h1 class="header-message">채팅방 목록</h1>
+        <div class="chatroom-list">
+            {% for room in chatrooms %}
+            <div class="chatroom-item">
+                <span class="chatroom-name">{{ room.name }}</span>
+                <button onclick="enterChatRoom('{{ room.chatroomid }}')" class="chatroom-button">채팅방 입장</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+<div class="footer">
+    © 2024 DSM Do won june
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchAESKeys();
+    });
+    
+    function fetchAESKeys() {
+        fetch(`/aes_key`)
+            .then(response => response.json())
+            .then(data => {
+                const aesKeys = data.aes_keys;
+                aesKeys.forEach(key => {
+                    localStorage.setItem(key.chatroom, key.aes_key);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching AES keys:', error);
+            });
+    }
+    
+function enterChatRoom(chatroomId) {
+    const aesKey = localStorage.getItem(chatroomId);
+    if (aesKey) {
+        const url = `/chat/${chatroomId}?aes_key=${encodeURIComponent(aesKey)}`;
+        window.location.href = url;
+    } else {
+        console.error('No AES key found for this chat room.');
+        alert('채팅방 키를 찾을 수 없습니다. 접속이 불가능합니다.');
+    }
+}
+</script>
+
+</body>
+</html>

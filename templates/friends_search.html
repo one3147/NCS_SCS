@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>친구 추가</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F0F8FF;
+            color: #000000;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .header {
+            color: #005A9E;
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .search-box {
+            margin: 20px;
+            padding: 10px;
+        }
+
+        .search-input {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 2px solid #0078D7;
+            border-radius: 25px;
+            outline: none;
+            width: 300px;
+        }
+
+        .search-button {
+            background-color: #0078D7;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 25px;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.3s ease-out;
+        }
+
+        .search-button:hover {
+            background-color: #005A9E;
+        }
+
+        .footer {
+            margin-top: 50px;
+            color: #777;
+            font-size: 14px;
+        }
+        .search-result {
+            margin: 20px auto;
+            padding: 15px;
+            border: 1px solid #0078D7;
+            border-radius: 10px;
+            background-color: #FFFFFF;
+            box-shadow: 0 2px 4px rgba(0, 120, 215, 0.2);
+            max-width: 400px;
+        }
+    
+        .search-result p {
+            color: #005A9E;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+    
+        .search-result .username {
+            font-weight: bold;
+            font-size: 18px;
+        }
+    
+        .no-result {
+            color: #777;
+            font-style: italic;
+        }
+        .add-friend-button {
+            background-color: #4CAF50; /* 녹색 */
+            color: white;
+            padding: 10px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+    
+        .add-friend-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">친구 추가</div>
+    <form action="/friends/search" method="POST" class="search-box">
+        <input type="text" class="search-input" name="userid" placeholder="유저 ID 검색...">
+        <button type="submit" class="search-button">검색</button>
+    </form>
+
+    
+    <div id="search-results">
+        {% if user %}
+            <div class="search-result">
+                <p class="username">{{ user.username }}</p>
+                <p>{{ user.userid }}</p>
+                <button class="add-friend-button" onclick="addFriend('{{ user.userid }}')">친구 추가</button>
+            </div>
+        {% else %}
+            <div class="search-result no-result">
+                <p>검색 결과가 존재하지 않습니다.</p>
+            </div>
+        {% endif %}
+    </div>
+    
+
+    <div class="footer">
+        © 2024 DSM Do won june
+    </div>
+</div>
+<script>
+    function addFriend(userid) {
+        var formData = new FormData();
+        formData.append('userid', userid);
+        fetch('/friends/add', {
+            method: 'POST',
+            body: formData,
+        }).then(response => {
+            if(response.status == 201) {
+                alert("친구 추가 요청에 성공했습니다.");
+            }
+            else {
+                alert('친구 추가 요청에 실패했습니다.');
+            }
+        })
+    }
+</script>
+</body>
+</html>

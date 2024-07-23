@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>채팅방 생성</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F0F8FF;
+            color: #000000;
+            text-align: center;
+            padding-top: 50px;
+        }
+
+        .welcome-message {
+            color: #002244;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .button, .add-friend-button {
+            background-color: #0078D7;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.3s ease-out;
+        }
+
+        .button:hover, .add-friend-button:hover {
+            background-color: #005A9E;
+        }
+
+        .friend-list {
+            margin: 20px auto;
+            max-width: 600px;
+            background-color: #FFFFFF;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .friend-item {
+            border-bottom: 1px solid #EEEEEE;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .friend-name {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .footer {
+            margin-top: 50px;
+            color: #777;
+            font-size: 14px;
+        }
+        .added-friend-button {
+            background-color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 class="welcome-message">채팅방 생성</h1>
+        <input type="text" id="chatroomName" placeholder="채팅방 이름" style="margin-bottom: 20px; padding: 10px; width: 300px; border-radius: 5px; border: 1px solid #CCC;">
+        <div class="friend-list">
+            <!-- 친구 목록 -->
+            {% for friend in friends %}
+            <div class="friend-item">
+                <span class="friend-name">{{ friend }}</span>
+                <button class="add-friend-button" onclick="addFriendToRoom('{{ friend }}')">채팅방에 추가</button>
+            </div>
+            {% endfor %}
+        </div>
+        <button class="button" onclick="createChatRoom()">채팅방 생성 완료</button>
+    </div>
+
+<div class="footer">
+    © 2024 DSM Do won june
+</div>
+
+</body>
+<script>
+    var add_list = []; 
+    
+    function addFriendToRoom(friendId) {
+        var button = document.querySelector(`button[onclick="addFriendToRoom('${friendId}')"]`);
+        if (!add_list.includes(friendId)) {
+            add_list.push(friendId);
+            console.log(friendId + '를 채팅방에 추가');
+            button.classList.add('added-friend-button');
+            button.textContent = '추가 완료';
+        } else {
+
+            const index = add_list.indexOf(friendId);
+            if (index > -1) {
+                add_list.splice(index, 1);
+            }
+            console.log(friendId + '를 채팅방에서 제거');
+            button.classList.remove('added-friend-button');
+            button.textContent = '채팅방에 추가';
+        }
+    }
+    
+    function createChatRoom() {
+        console.log('추가된 친구 ID 목록:', add_list);
+        var chatroomName = document.getElementById('chatroomName').value;
+        fetch('/chat/create', {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({friends: add_list, name: chatroomName}),
+            redirect: 'follow'
+        })
+        .then(response => response.json())
+        .then(data => {
+            localStorage.setItem(data.chatroom_id, data.aes_key);
+            window.location.href = '/chat/list';
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    }
+</script>
+    
+</html>
